@@ -1,20 +1,36 @@
 import sys
 
+
 def main():
     while True:
-        command = input("> ").strip().replace(" ", "")
-        if command == "quit":
-            break
-        
-        command = f"0+{command}"
-        command_segments = parse(command)
-        print(run(command_segments))
+        diagnostic = calculator()
+
+        match diagnostic:
+            case 0:
+                pass
+            case 1:
+                break
+            case _:
+                pass
 
     return 0
 
+
+def calculator(**flags):
+    command = input("> ").strip().replace(" ", "")
+    if command == "quit":
+        return 1
+
+    command = f"0+{command}"
+    command_segments = parse(command)
+    print(run(command_segments))
+
+    return 0
+
+
 def parse(command: str):
     command_segments: list[str] = []
-   
+
     # Parse additions first
     for segment in command.split(sep="+"):
         command_segments.append(segment)
@@ -28,7 +44,7 @@ def parse(command: str):
         if inserted:
             inserted = False
             continue
-        if not "*" in segment:
+        if "*" not in segment:
             continue
         negative_count = segment.count("-")
         segment = segment.replace("-", "")
@@ -40,7 +56,7 @@ def parse(command: str):
 
     # Parse negatives
     for index, segment in enumerate(command_segments):
-        if not "-" in segment:
+        if "-" not in segment:
             continue
         if len(segment) == 1:
             continue
@@ -54,8 +70,9 @@ def parse(command: str):
         command_segments = command_segments[:index]
         command_segments.extend(segment)
         command_segments.extend(buffer)
-    
+
     return command_segments
+
 
 def run(command_segments: list[str]):
     curr_number = int(command_segments.pop(0))
@@ -74,6 +91,7 @@ def run(command_segments: list[str]):
                 curr_number += direction * int(command)
 
     return curr_number
+
 
 if __name__ == "__main__":
     try:
