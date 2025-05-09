@@ -1,6 +1,6 @@
 import sys
 
-from Calculator import Calculator
+from expression import Expression
 
 # TODO: Create syntax checking and flags and others
 def main():
@@ -12,11 +12,12 @@ def main():
             break
         if command.startswith("set"):
             starting_value = int(command.split()[1])
+            continue
 
         command = command.replace(" ", "")
 
-        calculator = Calculator(command)
-        print(calculator.run(starting_value))
+        expression = Expression(command)
+        print(expression.run(starting_value))
 
     return 0
 

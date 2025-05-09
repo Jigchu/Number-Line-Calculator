@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-class Calculator:
+class Expression:
     def __init__(self, command: str):
         self.commands: Token = self.parse(command)
 
