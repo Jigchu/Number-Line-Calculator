@@ -7,7 +7,7 @@ class Calculator:
     # TODO: Add functions and inlines and stuff
     def parse(self, command: str):
         commands: Token = Token()
-        
+
         # Parse additions first
         current = commands
         for segment in command.split(sep="+"):
@@ -77,7 +77,7 @@ class Calculator:
             current = current.next
 
         return commands
-    
+
     def run(self, starting_value: int = 0):
         curr_number = starting_value
         direction: int = 1
@@ -99,9 +99,8 @@ class Calculator:
                 case _:
                     curr_number += direction * int(command)
             current = current.next
-        
-        return curr_number
 
+        return curr_number
 
 # TODO: Make a very fancy iterator for my very fancy linked list
 
@@ -115,18 +114,17 @@ class Token:
     def pop(self):
         if self.next is None:
             return None
-        
+
         current = self
         while current.next is not None:
             if current.next.next is None:
                 break
             current = current.next
 
-
         last = current.next
         if last is None:
             return None
-        
+
         current.next = None
 
         return last.value

@@ -7,9 +7,13 @@ def main():
     starting_value = 0
 
     while True:
-        command = input("> ").strip().replace(" ", "")
+        command = input("> ").strip()
         if command == "quit":
             break
+        if command.startswith("set"):
+            starting_value = int(command.split()[1])
+
+        command = command.replace(" ", "")
 
         calculator = Calculator(command)
         print(calculator.run(starting_value))
