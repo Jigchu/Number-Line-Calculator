@@ -1,10 +1,10 @@
-from expression import Expression
+from expression import *
 
 class Function:
     def __init__(self, initialisation: str):
-        self.name: int = ""
-        self.arg_name: int = ""
-        self.expression: Expression
+        self.name: str = ""
+        self.arg_name: str = ""
+        self.expression: Expression | None = None
         self.parse(initialisation)
 
     def parse(self, initialisation: str):

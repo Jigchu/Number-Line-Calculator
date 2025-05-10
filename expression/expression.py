@@ -1,5 +1,5 @@
 from __future__ import annotations
-from token import Token
+from .token import *
 
 class Expression:
     def __init__(self, command: str):
@@ -7,11 +7,14 @@ class Expression:
 
     # TODO: Add functions and inlines and stuff
     def parse(self, command: str):
-        commands: Token = Token()
+        commands = None
 
         # Parse additions first
+        segments = command.split(sep="+")
+        commands = Token(segments[0])
         current = commands
-        for segment in command.split(sep="+"):
+
+        for segment in segments[1:]:
             current.next = Token(segment)
             current.next.next = Token("+")
             current = current.next.next
@@ -19,39 +22,24 @@ class Expression:
         _ = commands.pop()
 
         # Parse multiplication
-        current = commands
-        prev = None
-        while current is not None:
+        for prev, current in commands:
             if "*" not in current.value:
-                prev = current
-                current = current.next
                 continue
             negative_count = current.value.count("-")
             current.value = current.value.replace("-", "")
             if negative_count % 2 == 0:
-                prev = current
-                current = current.next
                 continue
             if prev is None:
-                prev = current
-                current = current.next
                 continue
             new_token = Token("-", current)
             prev.next = new_token
-            prev = current
-            current = current.next
 
         # Parse negatives
-        current = commands
-        prev = None
-        while current is not None:
+        command_iterator = TokenIterator(commands)
+        for prev, current in command_iterator:
             if "-" not in current.value:
-                prev = current
-                current = current.next
                 continue
             if len(current.value) == 1:
-                prev = current
-                current = current.next
                 continue
 
             token = f"\n{current.value}\n"
@@ -68,14 +56,14 @@ class Expression:
                 tmp.next = new_token
                 tmp= new_token
 
+            tmp_len = tmp.len()
+
             if prev is None:
                 break
-
             prev.next = buffer
             tmp.next = current.next
 
-            prev = tmp
-            current = current.next
+            command_iterator.step(tmp_len)
 
         return commands
 
@@ -83,11 +71,7 @@ class Expression:
         curr_number = starting_value
         direction: int = 1
 
-        current = self.commands.next
-        if current is None:
-            return curr_number
-
-        while current is not None:
+        for _, current in self.commands:
             command = current.value
             match command:
                 case "+":
