@@ -1,6 +1,6 @@
 import sys
 
-from expression import Expression
+from expression import *
 
 # TODO: Create syntax checking and flags and others
 def main():
@@ -15,6 +15,10 @@ def main():
             continue
 
         command = command.replace(" ", "")
+
+        if "=" in command:
+            _ = Function(command)
+            continue
 
         expression = Expression(command)
         print(expression.run(starting_value))

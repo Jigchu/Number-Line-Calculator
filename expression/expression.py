@@ -1,29 +1,51 @@
 from __future__ import annotations
 from .token import *
 
+FUNCTION_TABLE: dict[str, Function] = {}
+
+# when command is an empty string, expression.commands will be None
 class Expression:
     def __init__(self, command: str):
-        self.commands: Token = self.parse(command)
+        self.commands: Token | None = None
+        if command == "":
+            return
 
-    # TODO: Add functions and inlines and stuff
+        self.commands = self.parse(command)
+
+    def copy(self):
+        expression_copy = Expression("")
+
+        if self.commands is None:
+            return expression_copy
+        commands_copy = self.commands.copy()
+        expression_copy.commands = commands_copy
+
+        return expression_copy
+
     def parse(self, command: str):
         commands = None
 
         # Parse additions first
         segments = command.split(sep="+")
+        tmp_segments = segments.copy()
+        for index, segment in enumerate(tmp_segments):
+            if "(" in segment and ")" not in segment:
+                function_segnment = [tmp_segments[index], tmp_segments[index+1]]
+                function_segnment = "+".join(function_segnment)
+                segments = segments[:index] + [function_segnment] + segments[index+2:]
+
         commands = Token(segments[0])
         current = commands
 
         for segment in segments[1:]:
-            current.next = Token(segment)
-            current.next.next = Token("+")
+            current.next = Token("+")
+            current.next.next = Token(segment)
             current = current.next.next
 
-        _ = commands.pop()
 
         # Parse multiplication
         for prev, current in commands:
-            if "*" not in current.value:
+            if "*" not in current.value or current.type == "Function":
                 continue
             negative_count = current.value.count("-")
             current.value = current.value.replace("-", "")
@@ -31,13 +53,13 @@ class Expression:
                 continue
             if prev is None:
                 continue
-            new_token = Token("-", current)
+            new_token = Token("-", next=current)
             prev.next = new_token
 
         # Parse negatives
         command_iterator = TokenIterator(commands)
         for prev, current in command_iterator:
-            if "-" not in current.value:
+            if "-" not in current.value or current.type == "Function":
                 continue
             if len(current.value) == 1:
                 continue
@@ -65,25 +87,67 @@ class Expression:
 
             command_iterator.step(tmp_len)
 
+        print(commands)
         return commands
 
     def run(self, starting_value: int = 0):
+        if self.commands is None:
+            return starting_value
+
         curr_number = starting_value
         direction: int = 1
-
         for _, current in self.commands:
             command = current.value
+            added_number = 0
             match command:
                 case "+":
                     pass
                 case "-":
                     direction *= -1
+                case command if current.type == "Function": 
+                    name, command = command.split(sep="(")
+                    func = FUNCTION_TABLE[name]
+                    arg_expression = command.split(sep=")")[0]
+                    arg_expression = Expression(arg_expression)
+                    func_result= func.run(arg_expression.run())
+                    added_number = func_result
                 case command if any([c for c in command if c == "*"]):
-                    command = command.split("*")
-                    curr_number += direction * int(command[0]) * int(command[1])
+                    command = command.split(sep="*")
+                    added_number = int(command[0]) * int(command[1])
                 case _:
-                    curr_number += direction * int(command)
-            current = current.next
+                    added_number = int(command)
+            curr_number += direction * int(added_number)
 
         return curr_number
+
+
+class Function:
+    def __init__(self, initialisation: str):
+        self.name: str = ""
+        self.arg_name: str = ""
+        self.expression: Expression
+        self.parse(initialisation)
+        FUNCTION_TABLE[self.name] = self
+
+    def parse(self, initialisation: str):
+        name, expression = initialisation.split(sep="=")
+        expression = "".join(expression).replace(" ", "")
+        self.expression = Expression(expression)
+
+        name, arg_name = name.split(sep="(")
+        arg_name = "".join(arg_name)
+        self.name = name
+        self.arg_name = arg_name.replace(")", "")
+
+    def run(self, arg_value: int):
+        command_to_run = self.expression.copy()
+
+        if command_to_run.commands is None:
+            return 0
+
+        for _, current in command_to_run.commands:
+            current.value = current.value.replace(self.arg_name, str(arg_value))
+
+        return command_to_run.run()
+
 

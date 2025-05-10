@@ -1,11 +1,20 @@
 from __future__ import annotations
-from typing import override
+from typing import Literal, override
 
 # Fancy class that is just a linked list
 class Token:
-    def __init__(self, value: str = "", next: Token | None = None):
+    def __init__(self, value: str = "", token_type: Literal["Term", "Operator", "Function"] = "Term", next: Token | None = None, copy: bool = False):
         self.value: str = value
+        self.type: Literal["Term", "Operator", "Function"] = token_type
         self.next: Token | None = next
+
+        if copy:
+            return
+
+        if any([c for c in self.value if c in ["+", "-"]]):
+            self.type = "Operator"
+        elif "(" in self.value:
+            self.type = "Function"
 
     @override
     def __str__(self):
@@ -14,23 +23,22 @@ class Token:
     def __iter__(self):
         return TokenIterator(self)
 
-    # Removes the last element of the linked list and returns its value or None
-    def pop(self):
-        last = self
-        new_last = None
-
-        for prev, current in self:
-            last = current
-            new_last = prev
-
-        if new_last is None:
-            return None
-        new_last.next = None
-
-        return last.value
-
     def len(self):
         return sum([1 for _ in self])
+
+    def copy(self):
+        head = Token(self.value, self.type, copy=True)
+
+        if self.next is None:
+            return head
+
+        copy_current = head
+        for _, current in self.next:
+            token_copy = Token(current.value, self.type, copy=True)
+            copy_current.next = token_copy
+            copy_current = token_copy
+
+        return head
 
 class TokenIterator:
     def __init__(self, token: Token):

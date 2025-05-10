@@ -1,3 +1,3 @@
-from .expression import Expression
+from .expression import *
 
-__all__ = ["Expression"]
+__all__ = ["Expression", "Function"]
