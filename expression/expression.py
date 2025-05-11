@@ -45,7 +45,9 @@ class Expression:
 
         # Parse multiplication
         for prev, current in commands:
-            if "*" not in current.value or current.type == "Function":
+            if "*" not in current.value:
+                continue
+            if "(" in current.value:
                 continue
             negative_count = current.value.count("-")
             current.value = current.value.replace("-", "")
@@ -87,10 +89,9 @@ class Expression:
 
             command_iterator.step(tmp_len)
 
-        print(commands)
         return commands
 
-    def run(self, starting_value: int = 0):
+    def run(self, starting_value: int = 0) -> int:
         if self.commands is None:
             return starting_value
 
@@ -113,7 +114,9 @@ class Expression:
                     added_number = func_result
                 case command if any([c for c in command if c == "*"]):
                     command = command.split(sep="*")
-                    added_number = int(command[0]) * int(command[1])
+                    expression1 = Expression(command[0])
+                    expression2 = Expression(command[1])
+                    added_number = expression1.run() * expression2.run()
                 case _:
                     added_number = int(command)
             curr_number += direction * int(added_number)
@@ -144,11 +147,11 @@ class Function:
         expression = "".join(expression).replace(" ", "")
 
         name, arg_name = name.split(sep="(")
-        arg_name = "".join(arg_name).replace(")", " ")
+        arg_name = "".join(arg_name).replace(")", "")
 
         return name, arg_name, expression
 
-    def run(self, arg_value: int):
+    def run(self, arg_value: int) -> int:
         if arg_value in self.base_cases:
             return self.base_cases[arg_value].run()
 

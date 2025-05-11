@@ -11,10 +11,12 @@ class Token:
         if copy:
             return
 
-        if any([c for c in self.value if c in ["+", "-"]]):
-            self.type = "Operator"
+        if "*" in self.value:
+            self.type = "Term"
         elif "(" in self.value:
             self.type = "Function"
+        elif any([c for c in self.value if c in ["+", "-"]]):
+            self.type = "Operator"
 
     @override
     def __str__(self):
