@@ -126,20 +126,32 @@ class Function:
         self.name: str = ""
         self.arg_name: str = ""
         self.expression: Expression
-        self.parse(initialisation)
+        self.base_cases: dict[int, Expression] = {}
+
+        name, arg_name, expression = self.parse(initialisation)
+        if arg_name.isnumeric():
+            function = FUNCTION_TABLE[name]
+            function.base_cases[int(arg_name)] = Expression(expression)
+            return
+
+        self.name = name
+        self.arg_name = arg_name
+        self.expression = Expression(expression)
         FUNCTION_TABLE[self.name] = self
 
     def parse(self, initialisation: str):
         name, expression = initialisation.split(sep="=")
         expression = "".join(expression).replace(" ", "")
-        self.expression = Expression(expression)
 
         name, arg_name = name.split(sep="(")
-        arg_name = "".join(arg_name)
-        self.name = name
-        self.arg_name = arg_name.replace(")", "")
+        arg_name = "".join(arg_name).replace(")", " ")
+
+        return name, arg_name, expression
 
     def run(self, arg_value: int):
+        if arg_value in self.base_cases:
+            return self.base_cases[arg_value].run()
+
         command_to_run = self.expression.copy()
 
         if command_to_run.commands is None:
