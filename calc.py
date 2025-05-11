@@ -2,9 +2,9 @@ import sys
 
 from expression import *
 
-# TODO: Create syntax checking and flags and others
 def main():
     starting_value = 0
+    CONTINUOUS = "--continuous" in sys.argv or "-c" in sys.argv
 
     while True:
         command = input("> ").strip()
@@ -21,7 +21,12 @@ def main():
             continue
 
         expression = Expression(command)
-        print(expression.run(starting_value))
+        expression_result = expression.run(starting_value)
+
+        if CONTINUOUS:
+            starting_value = expression_result
+
+        print(expression_result)
 
     return 0
 
