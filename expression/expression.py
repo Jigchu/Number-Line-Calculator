@@ -25,18 +25,44 @@ class Expression:
     def parse(self, command: str):
         commands = None
 
-        # Parse additions first
+        # Parse functions
         segments = command.split(sep="+")
-        tmp_segments = segments.copy()
-        for index, segment in enumerate(tmp_segments):
+        index = 0
+        while index < len(segments):
+            segment = segments[index]
             if "(" in segment and ")" not in segment:
-                function_segnment = [tmp_segments[index], tmp_segments[index+1]]
-                function_segnment = "+".join(function_segnment)
-                segments = segments[:index] + [function_segnment] + segments[index+2:]
+                function_segment = [segments[index], segments[index+1]]
+                function_segment = "+".join(function_segment)
+                segments = segments[:index] + [function_segment] + segments[index+2:]
+                index -= 1
+            index += 1
+
+        # Remove negatives from functions
+        index = 0
+        while index < len(segments):
+            segment = segments[index]
+            if "(" in segment:
+                function_segment = segment
+                function_segment_ref = function_segment[:]
+                function_segment = "".join([c for c in function_segment if c != "-"])
+                function_segments: list[str] = []
+                if function_segment_ref.startswith("-"): 
+                    first_half_segment = function_segment_ref[:len(function_segment_ref)//2]
+                    prefixed_negatives = [c for c in first_half_segment if c == "-"]
+                    function_segments.extend(prefixed_negatives)
+                function_segments.append(function_segment)
+                if function_segment_ref.endswith("-"):
+                    last_half_segment = function_segment_ref[len(function_segment_ref)//2:]
+                    suffixed_negatives = [c for c in last_half_segment if c == "-"]
+                    function_segments.extend(suffixed_negatives)
+                segments = segments[:index] + function_segments + segments[index+1:]
+
+            index += 1
 
         commands = Token(segments[0])
         current = commands
 
+        # Parse additions
         for segment in segments[1:]:
             current.next = Token("+")
             current.next.next = Token(segment)
@@ -123,6 +149,12 @@ class Expression:
 
         return curr_number
 
+    @classmethod
+    def isexpression(cls, expression: str):
+        if expression[0] in ["+", "*"]:
+            return False
+
+        return True
 
 class Function:
     def __init__(self, initialisation: str):
@@ -132,15 +164,17 @@ class Function:
         self.base_cases: dict[int, Expression] = {}
 
         name, arg_name, expression = self.parse(initialisation)
-        if arg_name.isnumeric():
-            function = FUNCTION_TABLE[name]
-            function.base_cases[int(arg_name)] = Expression(expression)
+        try:
+            arg_name = int(arg_name)
+        except ValueError:
+            self.name = name
+            self.arg_name = arg_name
+            self.expression = Expression(expression)
+            FUNCTION_TABLE[self.name] = self
             return
 
-        self.name = name
-        self.arg_name = arg_name
-        self.expression = Expression(expression)
-        FUNCTION_TABLE[self.name] = self
+        function = FUNCTION_TABLE[name]
+        function.base_cases[int(arg_name)] = Expression(expression)
 
     def parse(self, initialisation: str):
         name, expression = initialisation.split(sep="=")
