@@ -1,5 +1,4 @@
 # Number Line Calculator
-
 A calculator that uses a number line instead of just regular maths.
 
 ## The Idea
@@ -57,7 +56,7 @@ Then we shall run the Expression Token by Token, skipping the `+` Tokens:
 Since we have reached the end, the number that we are on is the result of the Expression: `-9`
 
 You may be thinking, "Hold up! The answer to `3 + -3 + 3 * 3` is `9`", but that's the magical part of this calculator. It
-does not actually care about math conventions, it produces the result based purely on the execution of arbitrary rules set
+does not actually care about Maths conventions, it produces the result based purely on the execution of arbitrary rules set
 by me on the number line.
 
 ## Keywords

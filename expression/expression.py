@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import cast
 from .token import *
 
 FUNCTION_TABLE: dict[str, Function] = {}
@@ -92,6 +93,7 @@ class Expression:
             if len(current.value) == 1:
                 continue
 
+            # TODO: Rewrite this
             token = f"\n{current.value}\n"
             token = token.split("-")
             for i in range(len(token)-1, 0, -1):
@@ -153,6 +155,42 @@ class Expression:
     def isexpression(cls, expression: str):
         if expression[0] in ["+", "*"]:
             return False
+
+        state: Literal["Function", "Nested", "Normal"] = "Normal"
+        buffer: dict[int, str] = {}
+        curr_buffer = 0
+        exceptable_symbols= ["+", "-", "*", "(", ")"]
+        for c in expression:
+            if not c.isnumeric() or c not in exceptable_symbols:
+                state = "Function"
+                curr_buffer += 1
+                buffer[curr_buffer] = state
+                curr_buffer += 1
+                buffer[curr_buffer] = c[:]
+                continue
+            if state == "Function":
+                if c == "(":
+                    func = FUNCTION_TABLE.get(buffer[curr_buffer])
+                    if func is None:
+                        return False
+                    if buffer[curr_buffer-1] == "Nested":
+                        buffer[curr_buffer-2]
+                    buffer[curr_buffer] = ""
+                    state = "Nested"
+                    continue
+                buffer[curr_buffer] = f"{buffer[curr_buffer]}{c}"
+                continue
+            if state == "Nested":
+                if c == ")":
+                    if not Expression.isexpression(buffer[curr_buffer]):
+                        return False
+                    curr_buffer -= 1
+                    state = cast(Literal["Function", "Nested", "Normal"], buffer[curr_buffer])
+                    curr_buffer -= 1
+                    continue
+                buffer[curr_buffer] = f"{buffer[curr_buffer]}{c}"
+                continue
+
 
         return True
 
